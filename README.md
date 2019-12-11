@@ -37,10 +37,14 @@ All subdirectories under this project's root folder should have **at least** fou
 3. One Ansible playbook file (generally named *playbook.yml* but there are no hard requirements on this)
 4. One Cognate inventory file (named  *cognate__X.yml* and the only requirement is that this file name begins with *cognate__* and ends with *.yml* or *.yaml*.
 
+> **Please notice that all paths declared in the Cognate inventory files (item 4) should be absolute or, *ideally*, relative to Cognate root folder (i.e. where Cognate's Vagrantfile is placed), otherwise Vagrant won't be able to find files described in items 1, 2 and 3**.
+
 > Please notice that you could tipically find many Ansible inventory, Ansible playbook and Cognate inventory files in one directory. This allows us to have different cluster configurations under the same folder structure.
 
-# Further Usage
+# Creating, Using and Modifing Files
 
 In order to make things clear, you can use preconfigured files (inventories and/or playbooks) that allow you to rapidly spin up a VM cluster from static inventories under one unique folder that aims to answer to a specific need. 
 
 By doing so, you are able to use one set of four files (described in the [Conventions](#conventions) section) to spin up just a single development node. When you are done with the development stage, you could easily change the configuration set up to deploy two or more nodes locally and to test your application in a distributed mode.
+
+Probably you'll need to change some of these files to match your expectations (amount of CPU, memory, playbook steps, etc). These Playbooks and configuration files contain just one initial setup for you to begin with but, at the end of the day, it's up to you to structure the project the way you need it. You should be able to repeat the steps 2 and 3 from section (How-to)[#how-to] to bring your machines to life.
