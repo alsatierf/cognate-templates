@@ -43,4 +43,4 @@ All subdirectories under this project's root folder should have **at least** fou
 
 In order to make things clear, you can use preconfigured files (inventories and/or playbooks) that allow you to rapidly spin up a VM cluster from static inventories under one unique folder that aims to answer to a specific need. 
 
-By doing so, you are able to use one set of four files (described on the [Conventions](#conventions) section) to spin up just a single development node. When you are done with the development stage, you could easily change the configuration set up to deploy two or more nodes locally and to test your application in a distributed mode.
+By doing so, you are able to use one set of four files (described in the [Conventions](#conventions) section) to spin up just a single development node. When you are done with the development stage, you could easily change the configuration set up to deploy two or more nodes locally and to test your application in a distributed mode.
