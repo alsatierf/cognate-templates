@@ -1,6 +1,6 @@
 # cognate-playbooks
 
-A curated list of Ansible playbooks that can be used with the [Cognate](https://github.com/alsfreitaz/cognate) framework with little effort.
+A curated list of Ansible playbooks that can be easily integrated with the [Cognate](https://github.com/alsfreitaz/cognate) framework.
 
 # How-to
 
