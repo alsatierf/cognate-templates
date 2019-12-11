@@ -1,0 +1,154 @@
+---
+- hosts: all
+  tasks:
+  - block: ## Common Dev Packages ##
+    - name: Install dev tools
+      yum:
+        name: "{{ packages }}"
+        state: present
+      vars:
+        packages:
+        - "@Development tools"
+        - gettext-devel
+        - openssl-devel
+        - perl-CPAN
+        - perl-devel
+        - zlib-devel
+
+    - name: Remove Git 1.x
+      yum:
+        name: git
+        state: absent
+
+    - name: Install Git 2.x IUS release
+      yum:
+        name: https://centos7.iuscommunity.org/ius-release.rpm # Needed for Git 2.x
+        state: present
+
+    - name: Install Git 2.x
+      yum:
+        name: git2u-all
+        state: present
+    when: ansible_os_family == 'RedHat'
+    become: yes
+
+  - block: ## OpenJDK ##
+    - name: "Install JRE ({{ java_version }}) and JDK ({{ java_version }}-devel) from OpenJDK"
+      include_role:
+        name: geerlingguy.java
+      vars:
+        java_packages:
+        - "{{ java_version }}"
+        - "{{ java_version }}-devel"
+
+    - name: "Set update-alternatives to point to the correct java version {{ java_version }}.x86_64"
+      command: "update-alternatives --set java {{ java_version }}.x86_64"
+
+    - name: "Set update-alternatives to point to the correct javac version {{ java_version }}.x86_64"
+      command: "update-alternatives --set javac {{ java_version }}.x86_64"
+
+    - name: Set environment variables related to Java
+      blockinfile:
+        insertafter: EOF
+        path: /etc/profile.d/openjdk.sh
+        block: |
+          export JAVA_HOME=$(dirname $(dirname $(readlink $(readlink $(which javac)))))
+          export PATH=$PATH:$JAVA_HOME/bin
+          export CLASSPATH=.:$JAVA_HOME/jre/lib:$JAVA_HOME/lib:$JAVA_HOME/lib/tools.jar
+        create: yes
+    when: ansible_os_family == 'RedHat'
+    vars:
+      java_version: java-1.8.0-openjdk
+    become: yes
+
+  - block: ## Maven 3 ##
+    - name: Install Maven 3
+      include_role:
+        name: tecris.maven
+      vars:
+        maven_major: 3
+        maven_version: 3.6.2
+        maven_home_parent_directory: /opt
+    become: yes
+
+  - block: ## Scala SBT ##
+    - name: Install SBT repository
+      get_url:
+        url: https://bintray.com/sbt/rpm/rpm
+        dest: /etc/yum.repos.d/bintray-sbt-rpm.repo
+
+    - name: Install SBT
+      package:
+        name: sbt
+        state: present
+    when: ansible_os_family == 'RedHat'
+    become: yes
+
+  - block: ## Apache Spark ##
+    - name: Check for Spark installation
+      stat:
+        path: "{{ spark_target_dir }}"
+      changed_when: false
+      register: spark_binary
+
+    - block:
+        - name: Check if Spark package has already been downloaded
+          stat: 
+            path: "/tmp/{{ spark_tgz }}"
+          register: spark_package_download_status
+
+        - name: "Download Spark {{ spark_ver }}"
+          become: yes
+          get_url:
+            url: "{{ spark_url }}"
+            dest: "/tmp/{{ spark_tgz }}"
+            mode: "0644"
+            checksum: "{{ spark_checksum }}"
+            timeout: "{{ spark_timeout }}"
+          when: not spark_package_download_status.stat.exists
+
+        - name: Unarchive Spark
+          unarchive:
+            remote_src: yes
+            dest: "{{ spark_parent_dir }}"
+            src: "/tmp/{{ spark_tgz }}"
+            creates: "{{ spark_target_dir }}"
+      always:
+        - name: Cleanup temp files
+          file:
+            path: "/tmp/{{ spark_tgz }}"
+            state: absent
+      when: not spark_binary.stat.exists
+
+    - name: Link spark
+      file:
+        src: "{{ spark_target_dir }}"
+        dest: "{{ spark_link_dir }}"
+        state: link
+
+    - name: Include Spark in the default path
+      template:
+        src: "templates/{{ item.f }}.j2"
+        dest: "{{ item.d }}/{{ item.f }}"
+        mode: "{{ item.m }}"
+      with_items:
+      - f: spark.sh
+        d: /etc/profile.d
+        m: "0644"
+      - f: spark.env
+        d: "{{ spark_target_dir }}"
+        m: "0644"
+    vars:
+      spark_ver: 2.4.4
+      spark_hadoop_ver: hadoop2.7
+      spark_checksum: sha512:2E3A5C853B9F28C7D4525C0ADCB0D971B73AD47D5CCE138C85335B9F53A6519540D3923CB0B5CEE41E386E49AE8A409A51AB7194BA11A254E037A848D0C4A9E5
+      spark_parent_dir: /usr/local
+      spark_timeout: 10
+      spark_mirror_url: https://archive.apache.org/dist/spark
+      spark_name: "spark-{{spark_ver}}"
+      spark_hadoop_name: "{{spark_name}}-bin-{{spark_hadoop_ver}}"
+      spark_tgz: "{{spark_hadoop_name}}.tgz"
+      spark_url: "{{spark_mirror_url}}/{{spark_name}}/{{spark_tgz}}"
+      spark_target_dir: "{{spark_parent_dir}}/{{spark_hadoop_name}}"
+      spark_link_dir: "{{spark_parent_dir}}/spark"
+    become: yes

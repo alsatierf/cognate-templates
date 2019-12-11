@@ -1,0 +1,17 @@
+---
+provider: "virtualbox"
+hosts:
+- name: spark_01 # Instance name
+  ip: 192.168.11.10 # Instance IP
+  box: centos/7 # Vagrant box name
+  box_version: 1905.1 # Vagrant box version
+  ansible_config_file: provisioning/cognate-playbooks/spark-2.4.4/ansible.cfg # Ansible config file path used by Vagrant to provision the VM
+  ansible_playbook: provisioning/cognate-playbooks/spark-2.4.4/playbook.yml # Ansible playbook file path used to provision the VM
+  ansible_inventory: provisioning/cognate-playbooks/spark-2.4.4/inventory.yml # Anbile inventory file path used to provision the VM
+  memory: 2048 # Memory (in MB)
+  cpus: 2 # CPU count (in units)
+  synced_folders: # Rsync and NFS protocols used for data sharing
+  - src: .
+    dest: /vagrant
+    type: rsync
+    disabled: true

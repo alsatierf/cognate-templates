@@ -1,0 +1,5 @@
+---
+- src: geerlingguy.java
+  version: 1.9.6
+- src: tecris.maven
+  version: v3.6.2
