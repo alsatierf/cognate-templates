@@ -17,7 +17,7 @@ A curated list of Ansible playbooks that can be easily integrated with the [Cogn
 
     ```
     $ cd X/
-    $ ansible-galaxy install -r requirements.yml # Only if requirements.yml file exists and is not empty
+    $ ansible-galaxy install -r requirements.yml # if requirements.yml file exists and is not empty
     $ cp cognate__X.yml ../../../vagrant_inventory
     $ cd ../..
     ```
