@@ -13,11 +13,11 @@ A curated list of Ansible playbooks that can be easily integrated with the [Cogn
     $ cd cognate-playbooks
     ```
     
-2. Change directory to one of this project's subdirectories, fetch all external roles (only needed file *requirements.yml* exists) with Ansible Galaxy, copy the file named *cognate__X.yml* to Cognate's [vagrant_inventory](https://github.com/alsfreitaz/cognate/tree/master/vagrant_inventory) folder and then change directory back to Cognate root folder. Substitute `X` by the directory name of your choice:
+2. Change directory to one of this project's subdirectories, fetch all external roles with Ansible Galaxy, copy the file named *cognate__X.yml* to Cognate's [vagrant_inventory](https://github.com/alsfreitaz/cognate/tree/master/vagrant_inventory) folder and then change directory back to Cognate root folder. Substitute `X` by the directory name of your choice:
 
     ```
     $ cd X/
-    $ ansible-galaxy install requirements.yml
+    $ ansible-galaxy install -r requirements.yml # Only if requirements.yml file exists and is not empty
     $ cp cognate__X.yml ../../../vagrant_inventory
     $ cd ../..
     ```
@@ -35,9 +35,10 @@ All subdirectories under this project's root folder should have **at least** fou
 1. One Ansible config file (generally named *ansible.cfg* but there are no hard requirements on this)
 2. One Ansible inventory file (generally named *inventory.yml* but there are no hard requirements on this)
 3. One Ansible playbook file (generally named *playbook.yml* but there are no hard requirements on this)
-4. One Cognate inventory file (named  *cognate__X.yml* and the only requirement is that this file name begins with *cognate__* and ends with *.yml* or *.yaml*.
+4. One Ansible dependency file (generally named *requirements.yml* but there are no hard requirements on this)
+5. One Cognate inventory file (named  *cognate__X.yml* and the only requirement is that this file name begins with *cognate__* and ends with *.yml* or *.yaml*.
 
-> **Please notice that all paths declared in the Cognate inventory files (item 4) should be absolute or, *ideally*, relative to Cognate root folder (i.e. where Cognate's Vagrantfile is placed), otherwise Vagrant won't be able to find files described in items 1, 2 and 3**.
+> **Please notice that all paths declared in the Cognate inventory files (item 5) should be absolute or, *ideally*, relative to Cognate's root folder (i.e. where Cognate's Vagrantfile is placed), otherwise Vagrant won't be able to find the files described in items 1, 2 and 3**.
 
 > Please notice that you could tipically find many Ansible inventory, Ansible playbook and Cognate inventory files in one directory. This allows us to have different cluster configurations under the same folder structure.
 
