@@ -13,7 +13,7 @@ A curated list of Ansible playbooks that can be easily integrated with the [Cogn
 
 > **Obs:** If you already have Ansible and Git installed and want to install Virtualbox and Vagrant in an automated and reproducible way, you can check project [alsfreitaz/virtualization](https://github.com/alsfreitaz/virtualization) out.
 
-# Example
+# Initial Setup
 
 1. Clone Cognate Templates project
 
@@ -30,23 +30,29 @@ A curated list of Ansible playbooks that can be easily integrated with the [Cogn
 
     > One thing to notice here is that IP addresses ending in x.y.z.0 (subnet address), x.y.z.1 (default gateway address used by Virtualbox) and x.y.z.255 (broadcast address) are automatically discarded. So the default IP range `192.168.10-11.0-255` provides us with 256*2 - 3*2 = 506 assignable valid private IP addresses.
 
-4. Change directory to Cognate Templates root folder, choose a template folder you want to use to create a cluster then run the [setup_cluster](setup_cluster) command with the appropriate arguments to translate the template files to actual static files ready to be used by Cognate:
+# Example
+
+Suppose you want to create a CentOS 7 VM with 1024 MB of RAM, 1 cpu and update all packages using Ansible. The following example will do that for you and the resulting VM will be named centos7__node:
+
+1. Change directory to Cognate Templates root folder then run the [setup_cluster](setup_cluster) command with the appropriate arguments to translate the template files to actual static files ready to be used by Cognate:
 
     ```
     $ cd $COGNATE_TEMPLATES_DIR
-    $ ./setup_cluster -c centos7 -s base/centos7_v1905.1 \
+    $ ./setup_cluster -s base/centos7_v1905.1 -c centos7 \
           -r @node@=@prefix_symbol -r @ip@=@dynamic_ip -r @memory@=1024 -r @cpus@=1 
     ```
     
-    > The above command will build a Cognate inventory file called `centos7.yml` from a template source folder (`base/centos7_v1905.1` in this case) in which we describe we want a CentOS 7 VM to be provided with 1024 MB of RAM, 1 CPU and one IP dynamically chosen from a preset range of possible IP addresses (set in config.yml file). We also say the name of the cluster is `centos7` and it will be used as a namespace for the nodes' names and destination folder name in order to avoid name clashes.
+    > The above command will build a Cognate inventory file called `centos7.yml` from a template source folder (`base/centos7_v1905.1` in this case) in which we describe we want a CentOS 7 VM to be provided with 1024 MB of RAM, 1 CPU and one IP dynamically chosen from a preset range of possible IP addresses (set in config.yml file). 
     
-    > Notice the use of the multivalued `-r` option to pass the string names to be replaced (in format `key=value`) in all files present in the source folder pointed by `-s` option.
+    > We also named the cluster `centos7` (by using the `-c` option). The cluster name is used as an unique namespace for creating nodes' names and the destination folder where the translated files name will reside.
+    
+    > Notice the use of the multivalued `-r` option to pass the string names to be replaced (in format `key=value`) in all files present in the source folder pointed by the `-s` option.
     
     > In the above example, we asked to prefix all occurences of the `@node@` symbol with the `<cluster_name>__` pattern (this is the mean of the `@prefix_symbol` value). As result, all occurences of `@node@` in all files present in the template folder `base/centos7_v1905.1` will be translated to the string `centos7__node` (*i.e* character '@' is removed from the symbol `@node@` and then it is the prefixed with "<clustername>__") in the destination folder `$COGNATE_DIR/provisioning/centos7`.
     
     > Please notice how the cluster name (passed as argument by the `-c` option) plays an importante role here. It is used to name the destination cognate inventory file (*i.e.* *<cluster_name>*.yml), the cluster destination folder name (*i.e.* $COGNATE_DIR/provisioning/*<cluster_name>*) and possibly string symbols in all files (which is *very* useful for setting VM names at creation time without having to manually modify files).
     
-5. Run `vagrant up` from Cognate root folder to provide and provision all virtual machine(s) in the cluster `centos7`:
+2. Run `vagrant up` from Cognate root folder to provide and provision all virtual machine(s) in the cluster `centos7`:
 
     ```
     $ cd $COGNATE_DIR
