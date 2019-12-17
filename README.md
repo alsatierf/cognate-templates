@@ -4,43 +4,46 @@ A curated list of Ansible playbooks that can be easily integrated with the [Cogn
 
 # How-to
 
-1. Clone the Cognate project, change diretory to its provisioning folder, clone this project then change directory to it:
+1. Clone the Cognate project (if not already installed) then clone this project:
 
     ```
     $ git clone https://github.com/alsfreitaz/cognate.git
-    $ cd provisioning
-    $ git clone https://github.com/alsfreitaz/cognate-playbooks.git
-    $ cd cognate-playbooks
+    $ git clone https://github.com/alsfreitaz/cognate-templates.git
     ```
     
-2. Change directory to one of this project's subdirectories, fetch all external roles with Ansible Galaxy, copy the file named *cognate__X.yml* to Cognate's [vagrant_inventory](https://github.com/alsfreitaz/cognate/tree/master/vagrant_inventory) folder and then change directory back to Cognate root folder. Substitute `X` by the directory name of your choice:
+2. Change directory to this project root folder, choose the template folder you want to use to create a cluster then run the setup_cluster command with the appropriate arguments to translate the templates into actual static files ready to be used by Cognate:
 
     ```
-    $ cd X/
-    $ ansible-galaxy install -r requirements.yml # if requirements.yml file exists and is not empty
-    $ cp cognate__X.yml ../../../vagrant_inventory
-    $ cd ../..
+    $ cd $COGNATE_TEMPLATES_DIR
+    $ ./setup_cluster -c centos7 -s base/centos7_v1905.1 -r @node@=@prefix_symbol -r @ip@=@dynamic_ip -r @memory@=1024 -r @cpus@=1 
     ```
     
-3. Run `vagrant up` to provide and provision the virtual machine(s):
+    > The above command will build a Cognate inventory file called `centos7.yml` from a template (`base/centos7_v1905.1/cognate_template.yml` in this case) in which we describe a CentOS 7 VM with 1024 MB of RAM, 1 CPU and an IP dynamically chosen from a preset range of possible IP addresses. We also say the name of the cluster is `centos7` and it will be used as a namespace for the nodes' names and destination folder name in order to avoid name clashes when the same template is used twice for building different clusters. 
+    
+    > We also asked to prefix all occurences of the `@node@` string with the `<cluster_name>__` pattern. As result, all occurences of `@node@` in all files present in the template folder `base/centos7_v1905.1` will be translated to the string `centos7__node` (notice that the character '@' is removed from `@node@` and only then the prefix "<clustername>__" is prepended to it) on the destination folder `$COGNATE_DIR/provisioning/centos7`.
+    
+    > Please notice how the cluster name (passed as argument by the `-c` flag) plays one importante role here. It is used to name the destination cognate inventory file (*i.e.* <cluster_name>.yml), the cluster destination folder name (*i.e.* `$COGNATE_DIR/provisioning/<cluster_name>`) and possibly string symbols in all files (which is *very* useful for setting VM names at creation time without having to manually modify files).
+    
+3. Run `vagrant up` (from Cognate root folder) to provide and provision all virtual machine(s) in the cluster `centos7`:
 
     ```
-    $ vagrant up
+    $ cd $COGNATE_DIR
+    $ vagrant up /centos7__/ 
     ```
+    
+    > The above command will create and provision all VM whose names start with `centos__` (it uses pattern matching provided by vagrant to limit actions only to virtual machines mached by the regexp).
 
 # Conventions
 
-All subdirectories under this project's root folder should have **at least** four files:
+All template subdirectories under this project's root folder should have **at least** four files:
 
 1. One Ansible config file (generally named *ansible.cfg* but there are no hard requirements on this)
 2. One Ansible inventory file (generally named *inventory.yml* but there are no hard requirements on this)
 3. One Ansible playbook file (generally named *playbook.yml* but there are no hard requirements on this)
 4. One Ansible dependency file (generally named *requirements.yml* but there are no hard requirements on this)
-5. One Cognate inventory file (named  *cognate__X.yml* and the only requirement is that this file name begins with *cognate__* and ends with *.yml* or *.yaml*.
+5. One Cognate inventory file (must be named  *cognate_inventory.yml)
 
-> **Please notice that all paths declared in the Cognate inventory files (item 5) should be absolute or, *ideally*, relative to Cognate's root folder (i.e. where Cognate's Vagrantfile is placed), otherwise Vagrant won't be able to find the files described in items 1, 2 and 3**.
-
-> Please notice that you could tipically find many Ansible inventory, Ansible playbook and Cognate inventory files in one directory. This allows us to have different cluster configurations under the same folder structure.
+> **Please notice that all paths declared in the Cognate inventory files (item 5) must be relative to Cognate's root folder (*i.e.* where Cognate's Vagrantfile is placed), otherwise Vagrant won't be able to find the files described in items 1, 2 and 3**.
 
 # Creating, Using and Modifing Files
 
