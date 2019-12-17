@@ -1,0 +1,17 @@
+---
+provider: virtualbox
+hosts:
+- name: @node@ # Instance name
+  ip: @ip@ # Instance IP
+  box: centos/7 # Vagrant box name
+  box_version: 1905.1 # Vagrant box version
+  ansible_config_file: provisioning/@cluster_name@/ansible.cfg # Ansible config file path used by Vagrant to provision the VM
+  ansible_playbook: provisioning/@cluster_name@/playbook.yml # Ansible playbook file path used to provision the VM
+  ansible_inventory: provisioning/@cluster_name@/inventory.yml # Anbile inventory file path used to provision the VM
+  memory: @memory@ # Memory (in MB)
+  cpus: @cpus@ # CPU count (in units)
+  synced_folders: # Rsync and NFS protocols used for data sharing
+  - src: .
+    dest: /vagrant
+    type: rsync
+    disabled: true

@@ -1,0 +1,5 @@
+---
+all:
+  hosts:
+    @node@:
+      ansible_ssh_host: @ip@
