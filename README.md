@@ -110,27 +110,27 @@ Probably you'll need to change some of these files or command line arguments to 
 
 ### Commands
 
-Setting up cluster files
+1. Setting up cluster files:
 
-```
-$ ./setup_cluster --cluster centos7 \
-      --source-folder base/centos7_v1905.1 \
-      --prefix-with-cluster-name @node@ \
-      --replace-by-random-ip @ip@ \
-      --replace @memory@=1024 \
-      --replace @cpus@=1
-```
+    ```
+    $ ./setup_cluster --source-folder base/centos7_v1905.1
+          --cluster centos7 \
+          --prefix-with-cluster-name @node@ \
+          --replace-by-random-ip @ip@ \
+          --replace @memory@=1024 \
+          --replace @cpus@=1
+    ```
 
-Providing and provisioning a cluster
+2. Providing and provisioning all cluster nodes:
 
-```
-$ cd $COGNATE_DIR
-$ vagrant up /centos7__/ 
-```
+    ```
+    $ cd $COGNATE_DIR
+    $ vagrant up /centos7__/ 
+    ```
 
 ### Expected Cluster State
 
-- Node 1:
+- **Node 1**:
   - Providing:
     - **name**: centos7__node
     - **box**: CentOS 7 (build 1905.1)
@@ -139,4 +139,4 @@ $ vagrant up /centos7__/
     - **cpus**: 1
     - **ip**: dynamically assigned
   - Provisioning:
-    - Updated OS packages
+    - OS packages updated
