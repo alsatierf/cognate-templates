@@ -1,4 +1,4 @@
-# cognate-playbooks
+# cognate-templates
 
 A curated list of Ansible playbooks that can be easily integrated with the [Cognate](https://github.com/alsfreitaz/cognate) framework.
 
