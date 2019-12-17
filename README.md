@@ -34,38 +34,28 @@ A curated list of Ansible playbooks that can be easily integrated with the [Cogn
 
     > One thing to notice here is that IP addresses ending in x.y.z.0 (subnet address), x.y.z.1 (default gateway address used by Virtualbox) and x.y.z.255 (broadcast address) are not considered VM assignable IP addresses. So the default IP range `192.168.10-11.0-255` provides us with 256\*2 - 3\*2 = 506 valid private IP addresses.
 
-# Example
 
-Suppose you want to create a CentOS 7 VM with 1024 MB of RAM, 1 cpu and update all packages using Ansible. The following example will do that for you and the resulting VM will be named centos7__node:
+# Internals
 
-1. Change directory to Cognate Templates root folder then run the [setup_cluster](setup_cluster) command with the appropriate arguments to translate the template files to actual static files ready to be used by Cognate:
+## Cluster Creation
 
-    ```
-    $ cd $COGNATE_TEMPLATES_DIR
-    $ ./setup_cluster -s base/centos7_v1905.1 -c centos7 \
-          -r @node@=@prefix_symbol -r @ip@=@dynamic_ip -r @memory@=1024 -r @cpus@=1 
-    ```
-    
-    > The above command will build a Cognate inventory file called `centos7.yml` from a template source folder (`base/centos7_v1905.1` in this case) in which we describe we want a CentOS 7 VM to be provided with 1024 MB of RAM, 1 CPU and one IP dynamically chosen from a preset range of possible IP addresses (set in config.yml file). 
-    
-    > We also named the cluster `centos7` (by using the `-c` option). The cluster name is used as an unique namespace for creating nodes' names and the destination folder where the translated files name will reside.
-    
-    > Notice the use of the multivalued `-r` option to pass the string names to be replaced (in format `key=value`) in all files present in the source folder pointed by the `-s` option.
-    
-    > In the above example, we asked to prefix all occurences of the `@node@` symbol with the `<cluster_name>__` pattern (this is the mean of the `@prefix_symbol` value). As result, all occurences of `@node@` in all files present in the template folder `base/centos7_v1905.1` will be translated to the string `centos7__node` (*i.e* character '@' is removed from the symbol `@node@` and then it is the prefixed with "<clustername>__") in the destination folder `$COGNATE_DIR/provisioning/centos7`.
-    
-    > Please notice how the cluster name (passed as argument by the `-c` option) plays an importante role here. It is used to name the destination cognate inventory file (*i.e.* *<cluster_name>*.yml), the cluster destination folder name (*i.e.* $COGNATE_DIR/provisioning/*<cluster_name>*) and possibly string symbols in all files (which is *very* useful for setting VM names at creation time without having to manually modify files).
-    
-2. Run `vagrant up` from Cognate root folder to provide and provision all virtual machine(s) in the cluster `centos7`:
+The `setup_cluster` command is responsible for creating one cluster from a template folder by executing the following steps:
 
-    ```
-    $ cd $COGNATE_DIR
-    $ vagrant up /centos7__/ 
-    ```
-    
-    > The above command will create and provision all VM whose names start with `centos__` using pattern matching provided by Vagrant to limit actions only to a group of virtual machines.
+1. Create or destroy and recreate (if `--overwrite` option is present) a folder called `${COGNATE_DIR}/provisioning/${CLUSTER_NAME}`. If folder `${COGNATE_DIR}/provisioning/${CLUSTER_NAME}` exists and option `--overwrite` is not set, the program will do nothing and will exit with error to avoid overwriting accidentally an existing folder.
 
-# Template Folder Structure
+2. Create a dictionary of key->value strings that will be used across all files in `${TEMPLATE_FOLDER}` where key is of the form `@SYMBOL@` and value can be directly set (by using `--replace` option) or dynamically constructed (by using `--replace-by-random-ip` and `--prefix-with-cluster-name` options).
+
+    1. `--replace-by-random-ip` can be used for requesting one random IP from the IP range defined in `cognate_ip_range` config variable that isn't in use yet. For checking which IP addresses are in use, all `ip` values from all \*.yml files under `${COGNATE_DIR}/inventory` folder are collected and subtracted from all assignable IP addresses constructed from `cognate_ip_range` config variable.
+    
+    2. `--prefix-with-cluster-name` replaces all ocurrences of `@SYMBOL@` by `${CLUSTER_NAME}__SYMBOL`.
+
+3. Apply all replacements in dictionary created at step 2 on the template files and write the translated files in `${COGNATE_DIR}/provisioning/${CLUSTER_NAME}` keeping the original relative paths intact.
+
+4. Move the file `${COGNATE_DIR}/provisioning/${CLUSTER_NAME}/cognate_inventory.yml` (translated in step 3) to `${COGNATE_DIR}/inventory/${CLUSTER_NAME}.yml`
+
+> Notice that options `--replace-by-random-ip`, `--replace-by-random-ip` and `replace` can be used many times on the command line (*i.e.* they are multi-valued variables).
+
+## Template Folders Structure
 
 All template folders should have **at least** these files:
 
@@ -75,12 +65,78 @@ All template folders should have **at least** these files:
 4. [**Optional**] One Ansible dependency file in case you have external roles to install using Ansible Galaxy (generally named *requirements.yml* but there are no hard requirements on this)
 5. [**Required**] One Cognate inventory file (must be named  *cognate_inventory.yml*)
 
-> **Please notice that all paths declared in the Cognate inventory file (item 5) must be relative to Cognate's root folder (*i.e.* where Cognate's Vagrantfile is placed), otherwise Vagrant won't be able to find the files described in items 1, 2 and 3**.
+> **Notice that all paths declared in the Cognate inventory file (item 5) must be relative to Cognate's root folder (*i.e.* where Cognate's Vagrantfile is placed), otherwise Vagrant won't be able to find the files described in items 1, 2 and 3**.
 
-# Creating, Using and Modifing Files
+## Usage
+
+```
+usage: setup_cluster [-h] -s TEMPLATE_FOLDER -c CLUSTER_NAME
+                     [-r @SYMBOL@=VALUE] [--prefix-with-cluster-name @SYMBOL@]
+                     [--replace-by-random-ip @SYMBOL@] [--overwrite]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -s TEMPLATE_FOLDER, --source-folder TEMPLATE_FOLDER
+                        Template folder name
+  -c CLUSTER_NAME, --cluster CLUSTER_NAME
+                        Cluster name
+  -r @SYMBOL@=VALUE, --replace @SYMBOL@=VALUE
+                        Set a number of keys that are to be replaced by their
+                        corresponding values (do not put spaces before or
+                        after the = sign). If a value contains spaces, you
+                        should define it with double quotes: @foo@="this is a
+                        sentence" Note that values are always treated as
+                        strings.
+  --prefix-with-cluster-name @SYMBOL@
+                        Replaces all ocurrences of @SYMBOL@ by
+                        <CLUSTER_NAME>__SYMBOL
+  --replace-by-random-ip @SYMBOL@
+                        Replaces all ocurrences of @SYMBOL@ by a random IP
+  --overwrite           Overwrite all files and folders. WARNING: Cluster
+                        folder and will be deleted and recreated
+```
+
+## A Note on Creating, Using and Modifing Files
 
 You can use these templates (inventories and/or playbooks) to rapidly spin up a VM cluster from static inventories under one unique folder that aims to answer to a specific need (this folder is refered as a *cluster* because all files inside it are able to create N virtual machines). 
 
-By doing so, you are able to use one set of files (see [Conventions](#conventions) section) to spin up just a single development node and when you are done with the development stage, you could easily change the configuration set up to deploy two or more nodes on a different cluster locally and to test your application in a distributed mode.
+By doing so, you are able to use one set of files (see [Template Folders Structure](#template_folders_structure) section) to spin up just a single development node and when you are done with the development stage, you could easily deploy another cluster with two or more nodes to test your application in a distributed mode.
 
-Probably you'll need to change some of these files to match your expectations (amount of CPU, memory, playbook steps, etc). These Playbooks and configuration files contain just one initial setup for you to begin with but, at the end of the day, it's up to you to structure the files and folders the way you want.
+Probably you'll need to change some of these files or command line arguments to match your expectations (amount of CPU, memory, playbook steps, etc). These Playbooks and configuration files contain just one initial setup for you to begin with but, at the end of the day, it's up to you to structure the files and folders the way you want.
+
+# Templates
+
+## base/centos7_v1905.1
+
+### Commands
+
+Setting up cluster files
+
+```
+$ ./setup_cluster --cluster centos7 \
+      --source-folder base/centos7_v1905.1 \
+      --prefix-with-cluster-name @node@ \
+      --replace-by-random-ip @ip@ \
+      --replace @memory@=1024 \
+      --replace @cpus@=1
+```
+
+Providing and provisioning a cluster
+
+```
+$ cd $COGNATE_DIR
+$ vagrant up /centos7__/ 
+```
+
+### Expected Cluster State
+
+- Node 1:
+  - Providing:
+    - name: centos7__node
+    - box: CentOS 7 (build 1905.1)
+    - box_version: 1905.1
+    - ram: 1024 MB
+    - cpus: 1
+    - ip: dynamically assigned
+  - Provisioning:
+    - Update all OS packages
