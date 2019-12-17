@@ -69,34 +69,31 @@ def parse_vars(items):
             d[key] = value
     return d
 
-def allocate_dynamic_ips(cognate_ip_range, cognate_inventory_folder, replacement_dict):
-    new_replacement_dict = replacement_dict.copy()
-    requested_ips = list(filter(lambda x: x[1] == "@dynamic_ip", new_replacement_dict.items()))
-    dynamic_ips = get_free_ips(cognate_ip_range, cognate_inventory_folder, len(requested_ips))
-    if len(requested_ips) > 0:
+def allocate_dynamic_ips(cognate_ip_range, cognate_inventory_folder, symbols):
+    new_replacement_dict = {}
+    dynamic_ips = get_free_ips(cognate_ip_range, cognate_inventory_folder, len(symbols))
+    if len(symbols) > 0:
         if len(dynamic_ips) > 0:
-            s = {ri[0]:dynamic_ips[i] for i, ri in enumerate(requested_ips)}
-            new_replacement_dict.update(s)
+            d = {symbol:dynamic_ips[i] for i, symbol in enumerate(symbols)}
+            new_replacement_dict.update(d)
         else:
-            print("Not enough free IPs to allocate. Please review the config attribute 'cognate_ip_range'")
+            print("Not enough free IP address(es) to allocate. Please review the config attribute 'cognate_ip_range' in config.yml file.")
             print("Nothing to do.")
             exit(1)
     return new_replacement_dict
 
-def prefix_symbols(replacement_dict, prefix):
-    new_replacement_dict = replacement_dict.copy()
-    requested_prefix_symbols = filter(lambda x: x[1] == "@prefix_symbol", new_replacement_dict.items())
-    s = {rps[0]:(prefix+rps[0].replace("@", "")) for rps in requested_prefix_symbols}
-    new_replacement_dict.update(s)
-    return new_replacement_dict
+def prefix_symbols(prefix, symbols):
+    return {symbol:(prefix+symbol.replace("@", "")) for symbol in symbols}
 
-def create_folder(path):
+def create_folder(path, overwrite=False):
     if os.path.exists(path):
-        print("Folder '{}' exists. Remove it before proceeding.".format(path))
-        print("Nothing to do.")
-        exit(1)
-    else:
-        os.makedirs(path)
+        if not overwrite:
+            print("Folder '{}' exists. Remove it before proceeding or ckeck --overwrite option.".format(path))
+            print("Nothing to do.")
+            exit(1)
+        else:
+            shutil.rmtree(path)
+    os.makedirs(path)
 
 def list_all_files(path):
     files = []
@@ -104,41 +101,75 @@ def list_all_files(path):
         files = files + [os.path.join(root, f) for f in f_names]
     return files
 
-def apply_changes(source_folder, cognate_inventory_folder, cognate_provisioning_folder, replacement_dict):
+def apply_changes(source_folder, cognate_inventory_folder, cognate_provisioning_folder, replacement_dict, overwrite=False):
     source_files_realpath = [os.path.realpath(sf) for sf in list_all_files(source_folder)]
     source_folder_realpath = os.path.realpath(source_folder)
     source_files_relativepath = [os.path.relpath(sfr, source_folder_realpath) for sfr in source_files_realpath]
-    create_folder(os.path.join(cognate_provisioning_folder, replacement_dict["@cluster_name@"]))
+    create_folder(os.path.join(cognate_provisioning_folder, replacement_dict["@cluster_name@"]), overwrite=overwrite)
     for i, sfr in enumerate(source_files_relativepath):
         replace_content(source_files_realpath[i], os.path.join(cognate_provisioning_folder, replacement_dict["@cluster_name@"], sfr), replacement_dict.items())
     shutil.move(os.path.join(cognate_provisioning_folder, replacement_dict["@cluster_name@"], COGNATE_INVENTORY_FILE), os.path.join(cognate_inventory_folder, "{}.yml".format(replacement_dict["@cluster_name@"]))) 
 
+def build_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-s", "--source-folder",
+        metavar="TEMPLATE_FOLDER",
+        required=True,
+        type=str,
+        help="Template folder name")
+    parser.add_argument(
+        "-c", "--cluster",
+        metavar='''CLUSTER_NAME''',
+        required=True,
+        type=str,
+        help='''Cluster name''')
+    parser.add_argument(
+        "-r", "--replace",
+        metavar="@SYMBOL@=VALUE",
+        action='append',
+        required=False,
+        help='''Set a number of keys that are to be replaced by their corresponding
+                values (do not put spaces before or after the = sign). If a value 
+                contains spaces, you should define it with double quotes:
+                    @foo@="this is a sentence"
+                Note that values are always treated as strings.''')
+    parser.add_argument(
+        "--prefix-with-cluster-name",
+        metavar="@SYMBOL@",
+        action='append',
+        required=False,
+        type=str,
+        help='''Replaces all ocurrences of @SYMBOL@ by <CLUSTER_NAME>__SYMBOL''')
+    parser.add_argument(
+        "--replace-by-random-ip",
+        metavar="@SYMBOL@",
+        action='append',
+        required=False,
+        type=str,
+        help='''Replaces all ocurrences of @SYMBOL@ by a random IP''')
+    parser.add_argument(
+        "--overwrite",
+        action='store_true',
+        required=False,
+        help='''Overwrite all files and folders.
+                WARNING: Cluster folder and will be deleted and recreated''')
+
+    return parser
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Cognate Templates')
-    parser.add_argument("-r", "--replace",
-                        metavar="KEY=VALUE",
-                        action='append',
-                        help="Set a number of key-value pairs to be replaced "
-                             "(do not put spaces before or after the = sign). "
-                             "If a value contains spaces, you should define "
-                             "it with double quotes: "
-                             'foo="this is a sentence". Note that '
-                             "values are always treated as strings.")
-    parser.add_argument("-s", "--source-folder",
-                        required=True,
-                        type=str,
-                        help="Subfolder name relative to this script folder")
-    parser.add_argument("-c", "--cluster",
-                        required=True,
-                        type=str,
-                        help="Cluster name (a.k.a destination folder name)")
-
-    config = build_config_dict(CONFIG_FILE)
+    parser = build_parser()
     args = parser.parse_args()
-    
-    replacement_dict = parse_vars(args.replace)
-    replacement_dict["@cluster_name@"] = args.cluster
-    replacement_dict = allocate_dynamic_ips(config["cognate_ip_range"], config["cognate_inventory_folder"], replacement_dict)
-    replacement_dict = prefix_symbols(replacement_dict, replacement_dict["@cluster_name@"].replace(".", "")+"__")
+    config = build_config_dict(CONFIG_FILE)
 
-    apply_changes(args.source_folder, config['cognate_inventory_folder'], config['cognate_provisioning_folder'], replacement_dict)
+    replacement_dict = parse_vars(args.replace)
+    dynamic_ip_dict = allocate_dynamic_ips(config["cognate_ip_range"], config["cognate_inventory_folder"], args.replace_by_random_ip)
+    prefix_symbols_dict = prefix_symbols((args.cluster).replace(".", "")+"__", args.prefix_with_cluster_name)
+
+    replacements_dict = {}
+    replacements_dict.update(replacement_dict)
+    replacements_dict.update(dynamic_ip_dict)
+    replacements_dict.update(prefix_symbols_dict)
+    replacements_dict.update({"@cluster_name@": args.cluster})
+    
+    apply_changes(args.source_folder, config['cognate_inventory_folder'], config['cognate_provisioning_folder'], replacements_dict, overwrite=args.overwrite)
