@@ -24,7 +24,9 @@ A curated list of Ansible playbooks that can be easily integrated with the [Cogn
 
     > The default value points currently to ~/Workspaces/cognate but you will probably need to adapt it to a different path.
 
-3. Check/Modify variable `cognate_ip_range` in Congnate Templates [config.yml](config.yml) file to reserve an IP range for using with Cognate. Currently, the default is `192.168.10-11.0-255` which is far than sufficient for development purposes but you will need to change if you have other apps that could potentially use IP addresses from 192.168.10.2 to 192.168.11.254.
+3. Check/Modify variable `cognate_ip_range` in Congnate Templates [config.yml](config.yml) file to reserve an IP range for using with Cognate.
+
+    > Currently, the default IP range is `192.168.10-11.0-255` which is far than sufficient for development purposes but you will need to change if you have other apps that could potentially use IP addresses from 192.168.10.2 to 192.168.11.254.
 
     > One thing to notice here is that IP addresses ending in x.y.z.0 (subnet address), x.y.z.1 (default gateway address used by Virtualbox) and x.y.z.255 (broadcast address) are automatically discarded. So the default IP range `192.168.10-11.0-255` provides us with 256*2 - 3*2 = 506 assignable valid private IP addresses.
 
