@@ -42,6 +42,7 @@ def get_free_ips(cognate_ip_range, cognate_inventory_folder, n):
         return []
 
 def replace_content(input, output, pairs):
+    os.makedirs(os.path.dirname(output), exist_ok=True)
     with open(input, 'r') as reader, open(output, 'w') as writer:
         content = reader.read()
         for (k, v) in pairs:
@@ -55,10 +56,10 @@ def build_config_dict(file):
     config['cognate_provisioning_folder'] = os.path.join(config["cognate_folder"], COGNATE_PROVISIONING_PATH)
     return config
 
-def parse_vars(items):
+def parse_replacements(items):
     def parse_var(s):
         items = s.split('=')
-        key = items[0].strip() # we remove blanks around keys, as is logical
+        key = items[0].strip()
         if len(items) > 1:
             value = '='.join(items[1:])
         return (key, value)
@@ -162,9 +163,14 @@ if __name__ == "__main__":
     args = parser.parse_args()
     config = build_config_dict(CONFIG_FILE)
 
-    replacement_dict = parse_vars(args.replace)
+    if not args.cluster.isidentifier():
+        print("Invalid cluster name: {}".format(args.cluster))
+        print("Nothing to do")
+        exit(1)
+
+    replacement_dict = parse_replacements(args.replace)
     dynamic_ip_dict = allocate_dynamic_ips(config["cognate_ip_range"], config["cognate_inventory_folder"], args.replace_by_random_ip)
-    prefix_symbols_dict = prefix_symbols((args.cluster).replace(".", "")+"__", args.prefix_with_cluster_name)
+    prefix_symbols_dict = prefix_symbols((args.cluster)+"__", args.prefix_with_cluster_name)
 
     replacements_dict = {}
     replacements_dict.update(replacement_dict)

@@ -1,0 +1,5 @@
+---
+all:
+  hosts:
+    @spark_01@:
+      ansible_ssh_host: @spark_01__ip@
