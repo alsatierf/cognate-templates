@@ -53,7 +53,7 @@ The `setup_cluster` command is responsible for creating one cluster from a templ
 
 4. Move the file `${COGNATE_DIR}/provisioning/${CLUSTER_NAME}/cognate_inventory.yml` (translated in step 3) to `${COGNATE_DIR}/inventory/${CLUSTER_NAME}.yml`
 
-> Notice that options `--replace-by-random-ip`, `--replace-by-random-ip` and `replace` can be used many times on the command line (*i.e.* they are multi-valued variables).
+> **Notice that options `--replace-by-random-ip`, `--replace-by-random-ip` and `--replace` can be used many times on the command line (*i.e.* they are multi-valued variables).**
 
 ## Template Folders Structure
 
@@ -132,11 +132,11 @@ $ vagrant up /centos7__/
 
 - Node 1:
   - Providing:
-    - name: centos7__node
-    - box: CentOS 7 (build 1905.1)
-    - box_version: 1905.1
-    - ram: 1024 MB
-    - cpus: 1
-    - ip: dynamically assigned
+    - **name**: centos7__node
+    - **box**: CentOS 7 (build 1905.1)
+    - **box_version**: 1905.1
+    - **ram**: 1024 MB
+    - **cpus**: 1
+    - **ip**: dynamically assigned
   - Provisioning:
-    - Update all OS packages
+    - Updated OS packages
