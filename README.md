@@ -18,7 +18,7 @@ A curated list of Ansible playbooks that can be easily integrated with the [Cogn
     $ ./setup_cluster -c centos7 -s base/centos7_v1905.1 -r @node@=@prefix_symbol -r @ip@=@dynamic_ip -r @memory@=1024 -r @cpus@=1 
     ```
     
-    > The above command will build a Cognate inventory file called `centos7.yml` from a template (`base/centos7_v1905.1/cognate_template.yml` in this case) in which we describe a CentOS 7 VM with 1024 MB of RAM, 1 CPU and an IP dynamically chosen from a preset range of possible IP addresses. We also say the name of the cluster is `centos7` and it will be used as a namespace for the nodes' names and destination folder name in order to avoid name clashes when the same template is used twice for building different clusters. 
+    > The above command will build a Cognate inventory file called `centos7.yml` from a template (`base/centos7_v1905.1/cognate_inventory.yml` in this case) in which we describe a CentOS 7 VM with 1024 MB of RAM, 1 CPU and an IP dynamically chosen from a preset range of possible IP addresses. We also say the name of the cluster is `centos7` and it will be used as a namespace for the nodes' names and destination folder name in order to avoid name clashes when the same template is used twice for building different clusters. 
     
     > We also asked to prefix all occurences of the `@node@` string with the `<cluster_name>__` pattern. As result, all occurences of `@node@` in all files present in the template folder `base/centos7_v1905.1` will be translated to the string `centos7__node` (notice that the character '@' is removed from `@node@` and only then the prefix "<clustername>__" is prepended to it) on the destination folder `$COGNATE_DIR/provisioning/centos7`.
     
