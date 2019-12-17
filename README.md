@@ -124,7 +124,7 @@ Probably you'll need to change some of these files or command line arguments to 
 2. Providing and provisioning all cluster nodes:
 
     ```
-    $ cd $COGNATE_DIR
+    $ cd ${COGNATE_DIR}
     $ vagrant up /centos7__/ 
     ```
 
@@ -140,3 +140,48 @@ Probably you'll need to change some of these files or command line arguments to 
     - **ip**: dynamically assigned
   - Provisioning:
     - OS packages updated
+
+
+## spark/spark-2.4.4/single
+
+### Commands
+
+1. Setting up cluster files:
+
+    ```
+    $ ./setup_cluster --source-folder spark/spark-2.4.4/single \
+          --cluster spark_single \
+          --prefix-with-cluster-name @spark_01@ \
+          --replace-by-random-ip @spark_01__ip@ \
+          --replace @memory@=4096 \
+          --replace @cpus@=2
+    $ cd ${COGNATE_DIR}/provisioning/spark_single
+    $ ansible-galaxy install -r requirements.yml
+    ```
+
+2. Providing and provisioning all cluster nodes:
+
+    ```
+    $ cd ${COGNATE_DIR}
+    $ vagrant up /spark_single__/ 
+    ```
+
+### Expected Cluster State
+
+- **Node 1**:
+  - Providing:
+    - **name**: spark_single__spark_01
+    - **box**: CentOS 7 (build 1905.1)
+    - **box_version**: 1905.1
+    - **ram**: 4096 MB
+    - **cpus**: 2
+    - **ip**: dynamically assigned
+  - Provisioning:
+    - OS packages updated
+    - Common development packages installed
+    - OpenJDK 8 installed
+    - Git 2 installed
+    - Maven 3.6.3 installed
+    - Latest SBT installed
+    - Apache Spark 2.4.4 installed
+
