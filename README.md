@@ -9,26 +9,30 @@ A curated list of Ansible playbooks that can be easily integrated with the [Cogn
 * [Ansible](https://docs.ansible.com/ansible/latest/index.html)
 * [Git](https://git-scm.com/)
 * [Cognate](https://github.com/alsfreitaz/cognate)
+* Python 3.5+ and pip3
 * Privileged access (**only if** you wish to mount NFS sharing between host and guest on Virtualbox)
 
 > **Obs:** If you already have Ansible and Git installed and want to install Virtualbox and Vagrant in an automated and reproducible way, you can check project [alsfreitaz/virtualization](https://github.com/alsfreitaz/virtualization) out.
 
 # Initial Setup
 
-1. Clone Cognate Templates project
+1. Clone Cognate Templates project and install all dependencies
 
     ```
     $ git clone https://github.com/alsfreitaz/cognate-templates.git
+    $ cd cognate-templates
+    $ pip install -r pip_requirements.txt
     ```
-2. Check/Modify variable `cognate_folder` in Congnate Templates [config.yml](config.yml) file to point to your Cognate root folder (referred here as `$COGNATE_DIR`). 
+    
+2. Check/Modify `cognate_folder` variable in Congnate Templates [config.yml](config.yml) file to point to your Cognate root folder (referred here as `$COGNATE_DIR`).
 
     > The default value points currently to ~/Workspaces/cognate but you will probably need to adapt it to a different path.
 
-3. Check/Modify variable `cognate_ip_range` in Congnate Templates [config.yml](config.yml) file to reserve an IP range for using with Cognate.
+3. Check/Modify `cognate_ip_range` variable in Congnate Templates [config.yml](config.yml) file to reserve an IP range for using with Cognate
 
     > Currently, the default IP range is `192.168.10-11.0-255` which is sufficient for development purposes but you will need to change if you have other apps that could potentially use IP addresses from 192.168.10.2 to 192.168.11.254.
 
-    > One thing to notice here is that IP addresses ending in x.y.z.0 (subnet address), x.y.z.1 (default gateway address used by Virtualbox) and x.y.z.255 (broadcast address) are automatically discarded. So the default IP range `192.168.10-11.0-255` provides us with 256*2 - 3*2 = 506 assignable valid private IP addresses.
+    > One thing to notice here is that IP addresses ending in x.y.z.0 (subnet address), x.y.z.1 (default gateway address used by Virtualbox) and x.y.z.255 (broadcast address) are not considered VM assignable IP addresses. So the default IP range `192.168.10-11.0-255` provides us with 256\*2 - 3\*2 = 506 valid private IP addresses.
 
 # Example
 
@@ -61,9 +65,9 @@ Suppose you want to create a CentOS 7 VM with 1024 MB of RAM, 1 cpu and update a
     
     > The above command will create and provision all VM whose names start with `centos__` using pattern matching provided by Vagrant to limit actions only to a group of virtual machines.
 
-# Conventions
+# Template Folder Structure
 
-All template subdirectories under this project's root folder should have **at least** four files:
+All template folders should have **at least** these files:
 
 1. [**Required**] One Ansible config file (generally named *ansible.cfg* but there are no hard requirements on this)
 2. [**Required**] One Ansible inventory file (generally named *inventory.yml* but there are no hard requirements on this)
