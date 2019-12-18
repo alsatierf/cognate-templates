@@ -108,35 +108,38 @@ Probably you'll need to change some of these files or command line arguments to 
 
 ## base/centos7_v1905.1
 
-### Commands
+### Scripts
 
-1. Setting up cluster files:
+```
+COGNATE_DIR= # TODO
+SOURCE_FOLDER=base/centos7_v1905.1
+CLUSTER_NAME= # TODO
+MEMORY= # TODO
+CPUS= # TODO
 
-    ```
-    $ ./setup_cluster --source-folder base/centos7_v1905.1
-          --cluster centos7 \
-          --prefix-with-cluster-name @node@ \
-          --replace-by-random-ip @ip@ \
-          --replace @memory@=1024 \
-          --replace @cpus@=1
-    ```
+./setup_cluster --source-folder ${SOURCE_FOLDER} \
+    --cluster ${CLUSTER_NAME} \
+    --prefix-with-cluster-name @node@ \
+    --replace-by-random-ip @ip@ \
+    --replace @memory@=${MEMORY} \
+    --replace @cpus@=${CPUS} \
+    # --overwrite
 
-2. Providing and provisioning all cluster nodes:
-
-    ```
-    $ cd ${COGNATE_DIR}
-    $ vagrant up /centos7__/ 
-    ```
+(
+    cd ${COGNATE_DIR}
+    vagrant up /${CLUSTER_NAME}__/
+)
+```
 
 ### Expected Cluster State
 
 - **Node 1**:
   - Providing:
-    - **name**: centos7__node
-    - **box**: CentOS 7 (build 1905.1)
+    - **name**: ${CLUSTER_NAME}__node
+    - **box**: CentOS 7
     - **box_version**: 1905.1
-    - **ram**: 1024 MB
-    - **cpus**: 1
+    - **ram**: ${MEMORY} MB
+    - **cpus**: ${CPUS}
     - **ip**: dynamically assigned
   - Provisioning:
     - OS packages updated
@@ -144,37 +147,44 @@ Probably you'll need to change some of these files or command line arguments to 
 
 ## spark/spark-2.4.4/single
 
-### Commands
+### Scripts
 
-1. Setting up cluster files:
+```shell
+COGNATE_DIR= # TODO
+SOURCE_FOLDER=spark/spark-2.4.4/single
+CLUSTER_NAME= # TODO
+MEMORY= # TODO
+CPUS= # TODO
 
-    ```
-    $ ./setup_cluster --source-folder spark/spark-2.4.4/single \
-          --cluster spark_single \
-          --prefix-with-cluster-name @spark_01@ \
-          --replace-by-random-ip @spark_01__ip@ \
-          --replace @memory@=4096 \
-          --replace @cpus@=2
-    $ cd ${COGNATE_DIR}/provisioning/spark_single
-    $ ansible-galaxy install -r requirements.yml
-    ```
+./setup_cluster --source-folder ${SOURCE_FOLDER} \
+    --cluster ${CLUSTER_NAME} \
+    --prefix-with-cluster-name @spark_01@ \
+    --replace-by-random-ip @spark_01__ip@ \
+    --replace @memory@=${MEMORY} \
+    --replace @cpus@=${CPUS} \
+    # --overwrite
 
-2. Providing and provisioning all cluster nodes:
-
-    ```
-    $ cd ${COGNATE_DIR}
-    $ vagrant up /spark_single__/ 
-    ```
+# Install external Ansible roles
+(
+    cd ${COGNATE_DIR}/provisioning/spark_single
+    ansible-galaxy install -r requirements.yml
+)
+    
+(
+    cd ${COGNATE_DIR}
+    vagrant up /${CLUSTER_NAME}__/ 
+)
+```
 
 ### Expected Cluster State
 
 - **Node 1**:
   - Providing:
-    - **name**: spark_single__spark_01
-    - **box**: CentOS 7 (build 1905.1)
+    - **name**: ${CLUSTER_NAME}__spark_01
+    - **box**: CentOS 7
     - **box_version**: 1905.1
-    - **ram**: 4096 MB
-    - **cpus**: 2
+    - **ram**: ${MEMORY} MB
+    - **cpus**: ${CPUS}
     - **ip**: dynamically assigned
   - Provisioning:
     - OS packages updated
