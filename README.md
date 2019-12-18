@@ -110,7 +110,7 @@ In the following subsections you will learn how to deploy clusters using some te
 
 ### Scripts
 
-```
+```shell
 COGNATE_DIR= # TODO
 SOURCE_FOLDER=base/centos7_v1905.1
 CLUSTER_NAME= # TODO
