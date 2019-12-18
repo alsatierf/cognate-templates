@@ -24,9 +24,9 @@ A curated list of Ansible playbooks that can be easily integrated with the [Cogn
     $ pip install -r pip_requirements.txt
     ```
     
-2. Provide variable `cognate_folder` in Congnate Templates [config.yml](config.yml) file with a path to your Cognate root folder (referred here as `$COGNATE_DIR`).
+2. Provide variable `cognate_folder` in Congnate Templates [config file]((config.yml) with a path to your Cognate root folder (referred here as `$COGNATE_DIR`).
 
-3. Check/Modify `cognate_ip_range` variable in [Congnate Templates config file](config.yml) to reserve an IP range for using with Cognate
+3. Check/Modify `cognate_ip_range` variable in Congnate Templates [config file](config.yml) to reserve an IP range for using with Cognate
 
     > Currently, the default IP range is `192.168.10-11.0-255` which is sufficient for development purposes but you will need to change it if you have other processes that could potentially use IP addresses from 192.168.10.0 to 192.168.11.255.
 
