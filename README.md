@@ -24,48 +24,16 @@ A curated list of Ansible playbooks that can be easily integrated with the [Cogn
     $ pip install -r pip_requirements.txt
     ```
     
-2. Check/Modify `cognate_folder` variable in Congnate Templates [config.yml](config.yml) file to point to your Cognate root folder (referred here as `$COGNATE_DIR`).
-
-    > The default value points currently to ~/Workspaces/cognate but you will probably need to adapt it to a different path.
+2. Provide variable `cognate_folder` in Congnate Templates [config.yml](config.yml) file with a path to your Cognate root folder (referred here as `$COGNATE_DIR`).
 
 3. Check/Modify `cognate_ip_range` variable in Congnate Templates [config.yml](config.yml) file to reserve an IP range for using with Cognate
 
-    > Currently, the default IP range is `192.168.10-11.0-255` which is sufficient for development purposes but you will need to change if you have other apps that could potentially use IP addresses from 192.168.10.2 to 192.168.11.254.
+    > Currently, the default IP range is `192.168.10-11.0-255` which is sufficient for development purposes but you will need to change it if you have other processes that could potentially use IP addresses from 192.168.10.0 to 192.168.11.255.
 
     > One thing to notice here is that IP addresses ending in x.y.z.0 (subnet address), x.y.z.1 (default gateway address used by Virtualbox) and x.y.z.255 (broadcast address) are not considered VM assignable IP addresses. So the default IP range `192.168.10-11.0-255` provides us with 256\*2 - 3\*2 = 506 valid private IP addresses.
 
 
 # Internals
-
-## Cluster Creation
-
-The `setup_cluster` command is responsible for creating one cluster from a template folder by executing the following steps:
-
-1. Create or destroy and recreate (if `--overwrite` option is present) a folder called `${COGNATE_DIR}/provisioning/${CLUSTER_NAME}`. If folder `${COGNATE_DIR}/provisioning/${CLUSTER_NAME}` exists and option `--overwrite` is not set, the program will do nothing and will exit with error to avoid overwriting accidentally an existing folder.
-
-2. Create a dictionary of key->value strings that will be used across all files in `${TEMPLATE_FOLDER}` where key is of the form `@SYMBOL@` and value can be directly set (by using `--replace` option) or dynamically constructed (by using `--replace-by-random-ip` and `--prefix-with-cluster-name` options).
-
-    1. `--replace-by-random-ip` can be used for requesting one random IP from the IP range defined in `cognate_ip_range` config variable that isn't in use yet. For checking which IP addresses are in use, all `ip` values from all \*.yml files under `${COGNATE_DIR}/inventory` folder are collected and subtracted from all assignable IP addresses constructed from `cognate_ip_range` config variable.
-    
-    2. `--prefix-with-cluster-name` replaces all ocurrences of `@SYMBOL@` by `${CLUSTER_NAME}__SYMBOL`.
-
-3. Apply all replacements in dictionary created at step 2 on the template files and write the translated files in `${COGNATE_DIR}/provisioning/${CLUSTER_NAME}` keeping the original relative paths intact.
-
-4. Move the file `${COGNATE_DIR}/provisioning/${CLUSTER_NAME}/cognate_inventory.yml` (translated in step 3) to `${COGNATE_DIR}/inventory/${CLUSTER_NAME}.yml`
-
-> **Notice that options `--replace-by-random-ip`, `--replace-by-random-ip` and `--replace` can be used many times on the command line (*i.e.* they are multi-valued variables).**
-
-## Template Folders Structure
-
-All template folders should have **at least** these files:
-
-1. [**Required**] One Ansible config file (generally named *ansible.cfg* but there are no hard requirements on this)
-2. [**Required**] One Ansible inventory file (generally named *inventory.yml* but there are no hard requirements on this)
-3. [**Required**] One Ansible playbook file (generally named *playbook.yml* but there are no hard requirements on this)
-4. [**Optional**] One Ansible dependency file in case you have external roles to install using Ansible Galaxy (generally named *requirements.yml* but there are no hard requirements on this)
-5. [**Required**] One Cognate inventory file (must be named  *cognate_inventory.yml*)
-
-> **Notice that all paths declared in the Cognate inventory file (item 5) must be relative to Cognate's root folder (*i.e.* where Cognate's Vagrantfile is placed), otherwise Vagrant won't be able to find the files described in items 1, 2 and 3**.
 
 ## Usage
 
@@ -96,15 +64,47 @@ optional arguments:
                         folder and will be deleted and recreated
 ```
 
-## A Note on Creating, Using and Modifing Files
+## Cluster Creation
+
+The `setup_cluster` command is responsible for creating one cluster from a template folder by executing the following steps:
+
+1. Create or destroy and recreate (if `--overwrite` option is present) a folder called `${COGNATE_DIR}/provisioning/${CLUSTER_NAME}`. If folder `${COGNATE_DIR}/provisioning/${CLUSTER_NAME}` exists and option `--overwrite` is not set, the program will do nothing and will exit with error to avoid overwriting accidentally an existing folder.
+
+2. Create a dictionary of key->value strings that will be used across all files in `${TEMPLATE_FOLDER}` where key is of the form `@SYMBOL@` and value can be directly set (by using `--replace` option) or dynamically constructed (by using `--replace-by-random-ip` and `--prefix-with-cluster-name` options).
+
+    1. `--replace-by-random-ip` can be used for requesting one random IP from the IP range defined in `cognate_ip_range` config variable that isn't in use yet. For checking which IP addresses are in use, all `ip` values from all \*.yml files under `${COGNATE_DIR}/inventory` folder are collected and subtracted from all assignable IP addresses constructed from `cognate_ip_range` config variable.
+    
+    2. `--prefix-with-cluster-name` replaces all ocurrences of `@SYMBOL@` by `${CLUSTER_NAME}__SYMBOL`.
+
+3. Apply all replacements on the template files and write the resulting files in `${COGNATE_DIR}/provisioning/${CLUSTER_NAME}`, keeping the same relative files hierarchy as the source template folder.
+
+4. Move the file `${COGNATE_DIR}/provisioning/${CLUSTER_NAME}/cognate_inventory.yml` (translated in step 3) to `${COGNATE_DIR}/inventory/${CLUSTER_NAME}.yml`
+
+> **Notice that options `--replace-by-random-ip`, `--replace-by-random-ip` and `--replace` can be used many times on the command line (*i.e.* they are multi-valued variables).**
+
+## Template Folders Structure
+
+All template folders should have **at least** these files:
+
+1. [**Required**] One Ansible config file (generally named *ansible.cfg* but there are no hard requirements on this)
+2. [**Required**] One Ansible inventory file (generally named *inventory.yml* but there are no hard requirements on this)
+3. [**Required**] One Ansible playbook file (generally named *playbook.yml* but there are no hard requirements on this)
+4. [**Optional**] One Ansible dependency file in case you have external roles to install using Ansible Galaxy (generally named *requirements.yml* but there are no hard requirements on this)
+5. [**Required**] One Cognate inventory file (must be named  *cognate_inventory.yml*)
+
+> **Notice that all paths declared in the Cognate inventory file (item 5) must be relative to Cognate's root folder (*i.e.* where Cognate's Vagrantfile is placed), otherwise Vagrant won't be able to find the files described in items 1, 2 and 3**.
+
+## A Note on Creating, Using and Modifing Files and Templates
 
 You can use these templates (inventories and/or playbooks) to rapidly spin up a VM cluster from static inventories under one unique folder that aims to answer to a specific need (this folder is refered as a *cluster* because all files inside it are able to create N virtual machines). 
 
-By doing so, you are able to use one set of files (see [Template Folders Structure](#template_folders_structure) section) to spin up just a single development node and when you are done with the development stage, you could easily deploy another cluster with two or more nodes to test your application in a distributed mode.
+By doing so, you are able to use one set of files (see [Template Folders Structure](#template-folders-structure) section) to spin up just a single development node and when you are done with the development stage, you could easily deploy another cluster with two or more nodes to test your application in a distributed mode.
 
 Probably you'll need to change some of these files or command line arguments to match your expectations (amount of CPU, memory, playbook steps, etc). These Playbooks and configuration files contain just one initial setup for you to begin with but, at the end of the day, it's up to you to structure the files and folders the way you want.
 
 # Templates
+
+In the following subsections you will learn how to deploy clusters using some templates and what to expect to be automatically configured by Ansible on each virtual machine.
 
 ## base/centos7_v1905.1
 
@@ -125,6 +125,7 @@ CPUS= # TODO
     --replace @cpus@=${CPUS} \
     # --overwrite
 
+# Deploy all virtual machines whose names begin with ${CLUSTER_NAME}__
 (
     cd ${COGNATE_DIR}
     vagrant up /${CLUSTER_NAME}__/
@@ -169,7 +170,8 @@ CPUS= # TODO
     cd ${COGNATE_DIR}/provisioning/spark_single
     ansible-galaxy install -r requirements.yml
 )
-    
+
+# Deploy all virtual machines whose names begin with ${CLUSTER_NAME}__
 (
     cd ${COGNATE_DIR}
     vagrant up /${CLUSTER_NAME}__/ 
