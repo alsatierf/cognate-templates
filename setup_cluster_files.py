@@ -6,6 +6,7 @@ CONFIG_FILE = "config.yml"
 COGNATE_INVENTORY_PATH = "inventory"
 COGNATE_PROVISIONING_PATH = "provisioning"
 COGNATE_INVENTORY_FILE = "cognate_inventory.yml"
+COGNATE_TEMPLATE_SCRIPTS_FOLDER = "__scripts__"
 
 def yaml_to_dict(filename):
     with open(filename) as file:
@@ -109,7 +110,8 @@ def apply_changes(source_folder, cognate_inventory_folder, cognate_provisioning_
     create_folder(os.path.join(cognate_provisioning_folder, replacement_dict["@cluster_name@"]), overwrite=overwrite)
     for i, sfr in enumerate(source_files_relativepath):
         replace_content(source_files_realpath[i], os.path.join(cognate_provisioning_folder, replacement_dict["@cluster_name@"], sfr), replacement_dict.items())
-    shutil.move(os.path.join(cognate_provisioning_folder, replacement_dict["@cluster_name@"], COGNATE_INVENTORY_FILE), os.path.join(cognate_inventory_folder, "{}.yml".format(replacement_dict["@cluster_name@"]))) 
+    shutil.move(os.path.join(cognate_provisioning_folder, replacement_dict["@cluster_name@"], COGNATE_INVENTORY_FILE), os.path.join(cognate_inventory_folder, "{}.yml".format(replacement_dict["@cluster_name@"])))
+    shutil.rmtree(os.path.join(cognate_provisioning_folder, replacement_dict["@cluster_name@"], COGNATE_TEMPLATE_SCRIPTS_FOLDER))
 
 def build_parser():
     parser = argparse.ArgumentParser()
