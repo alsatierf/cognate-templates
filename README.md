@@ -134,6 +134,33 @@ In the following subsections you will learn how to deploy clusters using some te
   - Provisioning:
     - OS packages updated
 
+## base/ubuntu/bionic64_v20191218.0.0
+
+### Scripts
+
+```shell
+# Setup cognate files
+./setup_cluster_files.py --source-folder base/ubuntu/bionic64_v20191218.0.0 \
+    --cluster ${CLUSTER_NAME} \
+    --prefix-with-cluster-name @node@ \
+    --replace-by-random-ip @ip@ \
+    --replace @memory@=${MEMORY} \
+    --replace @cpus@=${CPUS} \
+    # --overwrite
+```
+
+### Expected Cluster State
+
+- **Node 1**:
+  - Providing:
+    - **name**: ${CLUSTER_NAME}__node
+    - **box**: Ubuntu 18.04.3 LTS
+    - **box_version**: 20191218.0.0
+    - **ram**: ${MEMORY} MB
+    - **cpus**: ${CPUS}
+    - **ip**: dynamically assigned
+  - Provisioning:
+    - OS packages updated
 
 ## spark/spark-2.4.4/single
 
