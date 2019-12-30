@@ -111,25 +111,14 @@ In the following subsections you will learn how to deploy clusters using some te
 ### Scripts
 
 ```shell
-COGNATE_DIR= # TODO
-SOURCE_FOLDER=base/centos7_v1905.1
-CLUSTER_NAME= # TODO
-MEMORY= # TODO
-CPUS= # TODO
-
-./setup_cluster --source-folder ${SOURCE_FOLDER} \
+# Setup cognate files
+./setup_cluster_files.py --source-folder base/centos7_v1905.1 \
     --cluster ${CLUSTER_NAME} \
     --prefix-with-cluster-name @node@ \
     --replace-by-random-ip @ip@ \
     --replace @memory@=${MEMORY} \
     --replace @cpus@=${CPUS} \
     # --overwrite
-
-# Deploy all virtual machines whose names begin with ${CLUSTER_NAME}__
-(
-    cd ${COGNATE_DIR}
-    vagrant up /${CLUSTER_NAME}__/
-)
 ```
 
 ### Expected Cluster State
@@ -151,13 +140,8 @@ CPUS= # TODO
 ### Scripts
 
 ```shell
-COGNATE_DIR= # TODO
-SOURCE_FOLDER=spark/spark-2.4.4/single
-CLUSTER_NAME= # TODO
-MEMORY= # TODO
-CPUS= # TODO
-
-./setup_cluster --source-folder ${SOURCE_FOLDER} \
+# Setup cognate files
+./setup_cluster_files.py --source-folder spark/spark-2.4.4/single \
     --cluster ${CLUSTER_NAME} \
     --prefix-with-cluster-name @spark_01@ \
     --replace-by-random-ip @spark_01__ip@ \
@@ -166,16 +150,8 @@ CPUS= # TODO
     # --overwrite
 
 # Install external Ansible roles
-(
-    cd ${COGNATE_DIR}/provisioning/spark_single
-    ansible-galaxy install -r requirements.yml
-)
-
-# Deploy all virtual machines whose names begin with ${CLUSTER_NAME}__
-(
-    cd ${COGNATE_DIR}
-    vagrant up /${CLUSTER_NAME}__/ 
-)
+cd ${COGNATE_DIR}/provisioning/spark_single
+ansible-galaxy install -r requirements.yml
 ```
 
 ### Expected Cluster State
