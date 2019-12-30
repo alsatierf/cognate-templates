@@ -1,0 +1,8 @@
+---
+- hosts: all
+  tasks:
+  - name: Update all packages
+    apt:
+      name: "*"
+      state: latest
+    become: yes
